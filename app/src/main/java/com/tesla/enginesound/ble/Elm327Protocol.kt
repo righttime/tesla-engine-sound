@@ -1,5 +1,6 @@
 package com.tesla.enginesound.ble
 
+import android.util.Log
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import java.io.ByteArrayOutputStream
@@ -18,6 +19,8 @@ import java.nio.ByteOrder
 class Elm327Protocol(private val bleManager: BleManager) {
 
     companion object {
+        private const val TAG = "Elm327"
+
         // ELM327 AT Commands
         const val CMD_RESET = "AT Z"
         const val CMD_ECHO_OFF = "AT E0"
@@ -43,15 +46,18 @@ class Elm327Protocol(private val bleManager: BleManager) {
         const val ELM_ERROR = "ERROR"
         const val ELM_UNABLE = "UNABLE TO CONNECT"
 
-        // Internal
+        // Timeouts
         private const val DEFAULT_TIMEOUT_MS = 3000L
+        private const val RESET_TIMEOUT_MS = 5000L // Reset takes longer
         private const val CMD_TERMINATOR = "\r"
-        private val CR_LF = "\r\n".toByteArray()
     }
 
     // Protocol state
     private val _isInitialized = MutableStateFlow(false)
     val isInitialized: StateFlow<Boolean> = _isInitialized.asStateFlow()
+
+    private val _initProgress = MutableStateFlow<String>("")
+    val initProgress: StateFlow<String> = _initProgress.asStateFlow()
 
     private val _monitoringActive = MutableStateFlow(false)
     val monitoringActive: StateFlow<Boolean> = _monitoringActive.asStateFlow()
@@ -64,40 +70,81 @@ class Elm327Protocol(private val bleManager: BleManager) {
     private var monitoringJob: Job? = null
 
     // ─────────────────────────────────────────────────────────────
+    // LOGGING
+    // ─────────────────────────────────────────────────────────────
+
+    private fun log(msg: String) {
+        Log.d(TAG, msg)
+    }
+
+    // ─────────────────────────────────────────────────────────────
     // INITIALIZATION
     // ─────────────────────────────────────────────────────────────
 
     /**
      * Initialize ELM327 with standard init sequence:
-     * 1. AT Z - Reset
+     * 1. AT Z - Reset (takes up to 5s)
      * 2. AT E0 - Echo off
      * 3. AT SP 6 - Set protocol to Auto (CAN)
      * 4. AT H1 - Headers on (to see source/dest addresses)
-     * 5. AT MA - Monitor all (start receiving CAN frames)
+     *
+     * Returns true if initialization succeeded.
      */
     suspend fun initSequence(timeoutMs: Long = DEFAULT_TIMEOUT_MS): Boolean {
-        if (!bleManager.isConnected) return false
+        if (!bleManager.isConnected) {
+            log("initSequence called but not connected")
+            return false
+        }
 
         try {
-            // AT Z - Reset
-            if (!sendCommand(CMD_RESET, timeoutMs)) return false
+            _initProgress.value = "Resetting ELM327..."
+
+            // AT Z - Reset (this can take up to 5 seconds)
+            log("Sending: AT Z (reset)")
+            if (!sendCommand(CMD_RESET, RESET_TIMEOUT_MS)) {
+                log("AT Z failed")
+                _initProgress.value = "Reset failed"
+                return false
+            }
             delay(200)
 
+            _initProgress.value = "Setting echo off..."
             // AT E0 - Echo off
-            if (!sendCommand(CMD_ECHO_OFF, timeoutMs)) return false
+            log("Sending: AT E0 (echo off)")
+            if (!sendCommand(CMD_ECHO_OFF, timeoutMs)) {
+                log("AT E0 failed")
+                _initProgress.value = "Echo off failed"
+                return false
+            }
             delay(100)
 
+            _initProgress.value = "Setting protocol to CAN..."
             // AT SP 6 - Set protocol to CAN auto
-            if (!sendCommand(CMD_PROTOCOL_AUTO, timeoutMs)) return false
+            log("Sending: AT SP 6 (protocol CAN auto)")
+            if (!sendCommand(CMD_PROTOCOL_AUTO, timeoutMs)) {
+                log("AT SP 6 failed")
+                _initProgress.value = "Protocol set failed"
+                return false
+            }
             delay(100)
 
+            _initProgress.value = "Enabling headers..."
             // AT H1 - Headers on
-            if (!sendCommand(CMD_HEADERS_ON, timeoutMs)) return false
+            log("Sending: AT H1 (headers on)")
+            if (!sendCommand(CMD_HEADERS_ON, timeoutMs)) {
+                log("AT H1 failed")
+                _initProgress.value = "Headers failed"
+                return false
+            }
             delay(100)
 
+            _initProgress.value = "Ready!"
             _isInitialized.value = true
+            log("ELM327 initialization complete!")
             return true
         } catch (e: Exception) {
+            log("Init sequence exception: ${e.message}")
+            _initProgress.value = "Error: ${e.message}"
             _isInitialized.value = false
             return false
         }
@@ -117,17 +164,24 @@ class Elm327Protocol(private val bleManager: BleManager) {
      *   Remaining = 8 bytes of data
      */
     fun startMonitoring() {
-        if (_monitoringActive.value) return
+        if (_monitoringActive.value) {
+            log("Already monitoring")
+            return
+        }
 
         monitoringJob = scope.launch {
             _monitoringActive.value = true
+            log("Starting CAN monitoring...")
 
             // Send AT MA command to start monitor all
             val sent = bleManager.writeNoResponse(buildCommand(CMD_MONITOR_ALL))
             if (!sent) {
+                log("Failed to start monitoring")
                 _monitoringActive.value = false
                 return@launch
             }
+
+            log("Monitoring started, collecting frames...")
 
             // Collect and parse incoming data
             bleManager.observeRx()
@@ -139,6 +193,7 @@ class Elm327Protocol(private val bleManager: BleManager) {
     }
 
     fun stopMonitoring() {
+        log("Stopping monitoring")
         monitoringJob?.cancel()
         monitoringJob = null
         _monitoringActive.value = false
@@ -163,11 +218,12 @@ class Elm327Protocol(private val bleManager: BleManager) {
 
     /**
      * Send an AT command and return raw response string.
+     * Uses the new accumulation method to collect multi-chunk responses.
      */
     suspend fun sendCommandRaw(cmd: String, timeoutMs: Long = DEFAULT_TIMEOUT_MS): String? {
         val data = buildCommand(cmd)
-        val response = bleManager.writeRead(data, timeoutMs)
-        return response?.decodeToString()?.normalizeResponse()
+        val response = bleManager.sendCommandWithResponse(data, timeoutMs)
+        return response?.normalizeResponse()
     }
 
     /**
@@ -235,18 +291,39 @@ class Elm327Protocol(private val bleManager: BleManager) {
 
     /**
      * Parse a ByteArray containing CAN frame data (from BLE notification).
+     * Handles multi-line responses and strips echo.
      */
     private fun parseAndEmit(data: ByteArray) {
         val text = data.decodeToString()
         val lines = text.lines()
 
         for (line in lines) {
-            parseCanFrame(line)?.let { (id, bytes) ->
+            // Skip echo (command echo back before response)
+            val strippedLine = stripEcho(line)
+            if (strippedLine.isEmpty() || strippedLine == ">") continue
+
+            parseCanFrame(strippedLine)?.let { (id, bytes) ->
                 scope.launch {
                     _canFrames.emit(Pair(id, bytes))
                 }
             }
         }
+    }
+
+    /**
+     * Strip echo from response.
+     * When echo is on (or during init before echo is disabled),
+     * the command is echoed back before the response.
+     */
+    private fun stripEcho(line: String): String {
+        // If line contains \r\r\n it's likely echo + response
+        // Just return the last meaningful part
+        val trimmed = line.trim()
+        if (trimmed.contains("\r") || trimmed.contains("\n")) {
+            val parts = trimmed.split("\r", "\n").filter { it.isNotEmpty() && it != ">" }
+            return parts.lastOrNull()?.trim() ?: ""
+        }
+        return trimmed
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -392,7 +469,7 @@ class Elm327Protocol(private val bleManager: BleManager) {
     private fun containsError(response: String): Boolean {
         val upper = response.uppercase()
         return upper.contains("ERROR") || upper.contains("UNABLE") ||
-               upper.contains("?") && !upper.contains("OK")
+               (upper.contains("?") && !upper.contains("OK"))
     }
 
     private fun String.normalizeResponse(): String {

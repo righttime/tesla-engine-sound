@@ -6,26 +6,18 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -34,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -53,6 +46,8 @@ fun ConnectionScreen(
     val connectionState by viewModel.connectionState.collectAsState()
     val discoveredDevices by viewModel.discoveredDevices.collectAsState()
     val connectedDevice by viewModel.connectedDevice.collectAsState()
+    val connectionLog by viewModel.connectionLog.collectAsState()
+    val initProgress by viewModel.initProgress.collectAsState()
 
     val permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
         arrayOf(
@@ -107,7 +102,43 @@ fun ConnectionScreen(
             deviceName = connectedDevice?.name
         )
 
-        Spacer(modifier = Modifier.height(32.dp))
+        // ELM327 init progress
+        if (connectionState is ConnectionState.Connected && initProgress.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = initProgress,
+                color = TeslaGrayLight,
+                fontSize = 14.sp
+            )
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Connection log (scrollable console)
+        if (connectionLog.isNotEmpty()) {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(120.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF1A1A1A)),
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                SelectionContainer(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(8.dp)
+                ) {
+                    Text(
+                        text = connectionLog.joinToString("\n"),
+                        color = Color(0xFF00FF00),
+                        fontSize = 10.sp,
+                        fontFamily = FontFamily.Monospace,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+        }
 
         // Scan button
         when (connectionState) {
@@ -118,10 +149,18 @@ fun ConnectionScreen(
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
-                    text = "Scanning for ELM327 devices...",
+                    text = "Scanning for devices...",
                     color = TeslaWhite,
                     fontSize = 16.sp
                 )
+                Spacer(modifier = Modifier.height(8.dp))
+                Button(
+                    onClick = { viewModel.stopScan() },
+                    colors = ButtonDefaults.buttonColors(containerColor = TeslaGray),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text("STOP SCAN", color = TeslaWhite)
+                }
             }
             is ConnectionState.Connected -> {
                 connectedDevice?.let { device ->
@@ -203,10 +242,44 @@ fun ConnectionScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Device list
+        // Paired devices (always shown)
+        val pairedDevices = viewModel.pairedDevices
+        if (pairedDevices.isNotEmpty() && connectionState !is ConnectionState.Connected) {
+            Text(
+                text = "Paired Devices (${pairedDevices.size})",
+                color = Color(0xFF4FC3F7),
+                fontSize = 14.sp,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 8.dp)
+            )
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 200.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(pairedDevices) { device ->
+                    DeviceItem(
+                        name = device.name,
+                        address = device.address,
+                        rssi = device.rssi,
+                        onClick = {
+                            if (connectionState !is ConnectionState.Connecting) {
+                                viewModel.connect(device)
+                            }
+                        },
+                        isConnecting = connectionState is ConnectionState.Connecting
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+
+        // Scanned devices (show when available)
         if (discoveredDevices.isNotEmpty() && connectionState !is ConnectionState.Connected) {
             Text(
-                text = "Available Devices",
+                text = "Available Devices (${discoveredDevices.size})",
                 color = TeslaGrayLight,
                 fontSize = 14.sp,
                 modifier = Modifier
@@ -236,6 +309,8 @@ fun ConnectionScreen(
 
         // Permission note
         Spacer(modifier = Modifier.weight(1f))
+        HorizontalDivider(color = TeslaGray)
+        Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = "Required: BLUETOOTH_SCAN, BLUETOOTH_CONNECT, ACCESS_FINE_LOCATION",
             color = TeslaGrayLight,
@@ -249,11 +324,14 @@ private fun ConnectionStatusBadge(
     state: ConnectionState,
     deviceName: String?
 ) {
-    val (text, color) = when (state) {
-        is ConnectionState.Disconnected -> "Disconnected" to Color(0xFFFF1744)
-        is ConnectionState.Scanning -> "Scanning..." to Color(0xFFFFEA00)
-        is ConnectionState.Connecting -> "Connecting..." to Color(0xFFFFEA00)
-        is ConnectionState.Connected -> "Connected" to Color(0xFF00E676)
+    var text = "Unknown"
+    var color = Color.Gray
+    when (state) {
+        is ConnectionState.Disconnected -> { text = "Disconnected"; color = Color(0xFFFF1744) }
+        is ConnectionState.Scanning -> { text = "Scanning..."; color = Color(0xFFFFEA00) }
+        is ConnectionState.Connecting -> { text = "Connecting..."; color = Color(0xFFFFEA00) }
+        is ConnectionState.Connected -> { text = deviceName?.let { "Connected to $it" } ?: "Connected"; color = Color(0xFF00E676) }
+        else -> {}
     }
 
     Row(
@@ -308,11 +386,19 @@ private fun DeviceItem(
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium
                 )
-                Text(
-                    text = address,
-                    color = TeslaGrayLight,
-                    fontSize = 12.sp
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = address,
+                        color = TeslaGrayLight,
+                        fontSize = 12.sp
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "($rssi dBm)",
+                        color = getRssiColor(rssi),
+                        fontSize = 12.sp
+                    )
+                }
             }
             RssiIndicator(rssi = rssi)
         }
@@ -344,5 +430,15 @@ private fun RssiIndicator(rssi: Int) {
                     .background(if (index < bars) color else TeslaGrayLight)
             )
         }
+    }
+}
+
+@Composable
+private fun getRssiColor(rssi: Int): Color {
+    return when {
+        rssi >= -50 -> Color(0xFF00E676)  // Excellent
+        rssi >= -60 -> Color(0xFF00E676)  // Good
+        rssi >= -70 -> Color(0xFFFFEA00)  // Fair
+        else -> Color(0xFFFF1744)          // Poor
     }
 }

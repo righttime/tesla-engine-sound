@@ -1,0 +1,21 @@
+# ninja log v5
+0	12	1778283656417563595	googletest-populate-prefix/src/googletest-populate-stamp/googletest-populate-mkdir	1384e29a2b1c67b6
+0	12	1778283656417563595	/root/project/tesla-engine-sound/app/.cxx/Debug/6h2y4e6h/armeabi-v7a/_deps/googletest-subbuild/googletest-populate-prefix/src/googletest-populate-stamp/googletest-populate-mkdir	1384e29a2b1c67b6
+12	544	1778283656949572280	googletest-populate-prefix/src/googletest-populate-stamp/googletest-populate-download	aec63b99fd91fc34
+12	544	1778283656949572280	/root/project/tesla-engine-sound/app/.cxx/Debug/6h2y4e6h/armeabi-v7a/_deps/googletest-subbuild/googletest-populate-prefix/src/googletest-populate-stamp/googletest-populate-download	aec63b99fd91fc34
+544	556	1778283656961572476	googletest-populate-prefix/src/googletest-populate-stamp/googletest-populate-update	5cbfae84fc23203d
+544	556	1778283656961572476	/root/project/tesla-engine-sound/app/.cxx/Debug/6h2y4e6h/armeabi-v7a/_deps/googletest-subbuild/googletest-populate-prefix/src/googletest-populate-stamp/googletest-populate-update	5cbfae84fc23203d
+556	560	1778283656965572541	googletest-populate-prefix/src/googletest-populate-stamp/googletest-populate-patch	cc66fb5a4976cbe7
+556	560	1778283656965572541	/root/project/tesla-engine-sound/app/.cxx/Debug/6h2y4e6h/armeabi-v7a/_deps/googletest-subbuild/googletest-populate-prefix/src/googletest-populate-stamp/googletest-populate-patch	cc66fb5a4976cbe7
+560	568	1778283656973572672	googletest-populate-prefix/src/googletest-populate-stamp/googletest-populate-configure	d0619602b7939c68
+560	568	1778283656973572672	/root/project/tesla-engine-sound/app/.cxx/Debug/6h2y4e6h/armeabi-v7a/_deps/googletest-subbuild/googletest-populate-prefix/src/googletest-populate-stamp/googletest-populate-configure	d0619602b7939c68
+568	572	1778283656977572737	googletest-populate-prefix/src/googletest-populate-stamp/googletest-populate-build	379e381cda09f373
+568	572	1778283656977572737	/root/project/tesla-engine-sound/app/.cxx/Debug/6h2y4e6h/armeabi-v7a/_deps/googletest-subbuild/googletest-populate-prefix/src/googletest-populate-stamp/googletest-populate-build	379e381cda09f373
+572	587	1778283656989572932	googletest-populate-prefix/src/googletest-populate-stamp/googletest-populate-install	4f47aa1036951487
+572	587	1778283656989572932	/root/project/tesla-engine-sound/app/.cxx/Debug/6h2y4e6h/armeabi-v7a/_deps/googletest-subbuild/googletest-populate-prefix/src/googletest-populate-stamp/googletest-populate-install	4f47aa1036951487
+587	605	1778283657009573260	googletest-populate-prefix/src/googletest-populate-stamp/googletest-populate-test	cf0fee167eb3df99
+587	605	1778283657009573260	/root/project/tesla-engine-sound/app/.cxx/Debug/6h2y4e6h/armeabi-v7a/_deps/googletest-subbuild/googletest-populate-prefix/src/googletest-populate-stamp/googletest-populate-test	cf0fee167eb3df99
+605	615	1778283657017573390	CMakeFiles/googletest-populate-complete	755b36ae15dbf225
+605	615	1778283657017573390	googletest-populate-prefix/src/googletest-populate-stamp/googletest-populate-done	755b36ae15dbf225
+605	615	1778283657017573390	/root/project/tesla-engine-sound/app/.cxx/Debug/6h2y4e6h/armeabi-v7a/_deps/googletest-subbuild/CMakeFiles/googletest-populate-complete	755b36ae15dbf225
+605	615	1778283657017573390	/root/project/tesla-engine-sound/app/.cxx/Debug/6h2y4e6h/armeabi-v7a/_deps/googletest-subbuild/googletest-populate-prefix/src/googletest-populate-stamp/googletest-populate-done	755b36ae15dbf225

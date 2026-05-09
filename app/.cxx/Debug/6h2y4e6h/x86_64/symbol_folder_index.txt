@@ -1,0 +1,1 @@
+/root/project/tesla-engine-sound/app/build/intermediates/cxx/Debug/6h2y4e6h/obj/x86_64

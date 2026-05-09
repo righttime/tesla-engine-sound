@@ -1,0 +1,14 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : [],
+		"files" : [],
+		"nodes" : []
+	},
+	"installers" : [],
+	"paths" : 
+	{
+		"build" : "third_party/SCS",
+		"source" : "/root/project/tesla-engine-sound/engine-sim/core/third_party/simple-2d-constraint-solver"
+	}
+}

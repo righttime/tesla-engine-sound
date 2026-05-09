@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.sp
 import com.tesla.enginesound.ui.components.DataCard
 import com.tesla.enginesound.ui.theme.RpmGreen
 import com.tesla.enginesound.ui.theme.RpmRed
+import com.tesla.enginesound.ui.theme.RpmYellow
 import com.tesla.enginesound.ui.theme.TeslaDark
 import com.tesla.enginesound.ui.theme.TeslaGray
 import com.tesla.enginesound.ui.theme.TeslaGrayLight
@@ -48,7 +49,7 @@ import com.tesla.enginesound.ui.theme.TeslaRed
 import com.tesla.enginesound.ui.theme.TeslaWhite
 import com.tesla.enginesound.ui.viewmodel.EnginePreset
 import com.tesla.enginesound.ui.viewmodel.EngineViewModel
-import com.tesla.enginesound.ui.viewmodel.TeslaVehicleState
+import com.tesla.enginesound.tesla.TeslaVehicleState
 
 @Composable
 fun DashboardScreen(
@@ -85,7 +86,7 @@ fun DashboardScreen(
 
         // Speed display
         Text(
-            text = "${vehicleState.speed}",
+            text = "${vehicleState.speedKmh.toInt()}",
             color = TeslaWhite,
             fontSize = 72.sp,
             fontWeight = FontWeight.Bold,
@@ -110,10 +111,10 @@ fun DashboardScreen(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                BatterySocDisplay(soc = vehicleState.batterySoc)
+                BatterySocDisplay(soc = vehicleState.socPercent.toInt())
                 DataCard(
                     title = "Battery Temp",
-                    value = "${vehicleState.batteryTemp}°C",
+                    value = "${vehicleState.batteryTempC.toInt()}°C",
                     unit = "",
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -135,13 +136,13 @@ fun DashboardScreen(
                 ThrottleBar(throttle = engineThrottle)
                 DataCard(
                     title = "Motor Power",
-                    value = "%.0f".format(vehicleState.motorPower),
+                    value = "%.0f".format(vehicleState.frontPowerKw + vehicleState.rearPowerKw),
                     unit = "kW",
                     modifier = Modifier.fillMaxWidth()
                 )
                 DataCard(
                     title = "Torque",
-                    value = "%.0f".format(vehicleState.torque),
+                    value = "%.0f".format(vehicleState.frontTorqueNm + vehicleState.rearTorqueNm),
                     unit = "Nm",
                     modifier = Modifier.fillMaxWidth()
                 )

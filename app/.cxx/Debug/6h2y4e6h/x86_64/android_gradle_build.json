@@ -1,0 +1,79 @@
+{
+  "buildFiles": [
+    "/root/project/tesla-engine-sound/app/.cxx/Debug/6h2y4e6h/x86_64/_deps/googletest-src/CMakeLists.txt",
+    "/root/project/tesla-engine-sound/app/.cxx/Debug/6h2y4e6h/x86_64/_deps/googletest-src/googlemock/CMakeLists.txt",
+    "/root/project/tesla-engine-sound/app/.cxx/Debug/6h2y4e6h/x86_64/_deps/googletest-src/googletest/CMakeLists.txt",
+    "/root/project/tesla-engine-sound/app/src/main/cpp/CMakeLists.txt",
+    "/root/project/tesla-engine-sound/engine-sim/core/third_party/simple-2d-constraint-solver/CMakeLists.txt"
+  ],
+  "cleanCommandsComponents": [
+    [
+      "/opt/android-sdk/cmake/3.22.1/bin/ninja",
+      "-C",
+      "/root/project/tesla-engine-sound/app/.cxx/Debug/6h2y4e6h/x86_64",
+      "clean"
+    ]
+  ],
+  "buildTargetsCommandComponents": [
+    "/opt/android-sdk/cmake/3.22.1/bin/ninja",
+    "-C",
+    "/root/project/tesla-engine-sound/app/.cxx/Debug/6h2y4e6h/x86_64",
+    "{LIST_OF_TARGETS_TO_BUILD}"
+  ],
+  "libraries": {
+    "engine_sim_core::@6890427a1f51a3e7e1df": {
+      "toolchain": "toolchain",
+      "abi": "x86_64",
+      "artifactName": "engine_sim_core",
+      "output": "/root/project/tesla-engine-sound/app/.cxx/Debug/6h2y4e6h/x86_64/libengine_sim_core.a"
+    },
+    "engine_sim_jni::@6890427a1f51a3e7e1df": {
+      "toolchain": "toolchain",
+      "abi": "x86_64",
+      "artifactName": "engine_sim_jni",
+      "output": "/root/project/tesla-engine-sound/app/build/intermediates/cxx/Debug/6h2y4e6h/obj/x86_64/libengine_sim_jni.so",
+      "runtimeFiles": []
+    },
+    "gmock::@0f7bb11d64f3678238c7": {
+      "toolchain": "toolchain",
+      "abi": "x86_64",
+      "artifactName": "gmock",
+      "output": "/root/project/tesla-engine-sound/app/.cxx/Debug/6h2y4e6h/x86_64/lib/libgmockd.a"
+    },
+    "gmock_main::@0f7bb11d64f3678238c7": {
+      "toolchain": "toolchain",
+      "abi": "x86_64",
+      "artifactName": "gmock_main",
+      "output": "/root/project/tesla-engine-sound/app/.cxx/Debug/6h2y4e6h/x86_64/lib/libgmock_maind.a"
+    },
+    "gtest::@1ea2dfc0605fe3ab2a3f": {
+      "toolchain": "toolchain",
+      "abi": "x86_64",
+      "artifactName": "gtest",
+      "output": "/root/project/tesla-engine-sound/app/.cxx/Debug/6h2y4e6h/x86_64/lib/libgtestd.a"
+    },
+    "gtest_main::@1ea2dfc0605fe3ab2a3f": {
+      "toolchain": "toolchain",
+      "abi": "x86_64",
+      "artifactName": "gtest_main",
+      "output": "/root/project/tesla-engine-sound/app/.cxx/Debug/6h2y4e6h/x86_64/lib/libgtest_maind.a"
+    },
+    "simple-2d-constraint-solver::@8eab154f50ac4fc190c8": {
+      "toolchain": "toolchain",
+      "abi": "x86_64",
+      "artifactName": "simple-2d-constraint-solver",
+      "output": "/root/project/tesla-engine-sound/app/.cxx/Debug/6h2y4e6h/x86_64/third_party/SCS/libsimple-2d-constraint-solver.a"
+    }
+  },
+  "toolchains": {
+    "toolchain": {
+      "cCompilerExecutable": "/opt/android-sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/linux-x86_64/bin/clang.lld",
+      "cppCompilerExecutable": "/opt/android-sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++.lld"
+    }
+  },
+  "cFileExtensions": [],
+  "cppFileExtensions": [
+    "cpp",
+    "cc"
+  ]
+}

@@ -9,7 +9,7 @@
 
     <application
         android:allowBackup="false"
-        android:label="Tesla Engine Sound"
+        android:label="EV Engine"
         android:supportsRtl="true"
         android:theme="@style/Theme.TeslaEngineSound">
 

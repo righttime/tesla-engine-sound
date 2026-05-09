@@ -1,5 +1,7 @@
 package com.tesla.enginesound.tesla
 
+import com.tesla.enginesound.ble.PartialUpdate
+
 /**
  * Represents the current state of a Tesla vehicle, parsed from CAN bus frames.
  *
@@ -33,4 +35,31 @@ data class TeslaVehicleState(
     val batteryTempC: Float = 0f,
     val outsideTempC: Float = 0f,
     val timestamp: Long = System.currentTimeMillis()
-)
+) {
+    companion object {
+        val EMPTY = TeslaVehicleState()
+
+        /**
+         * Merge an incoming state update into the current state.
+         * Only non-default values from [update] are applied.
+         */
+        fun merge(current: TeslaVehicleState, update: PartialUpdate): TeslaVehicleState {
+            return current.copy(
+                speedKmh = update.speedKmh ?: current.speedKmh,
+                acceleratorPedal = update.acceleratorPedal ?: current.acceleratorPedal,
+                brakePedalOn = update.brakePedalOn ?: current.brakePedalOn,
+                frontPowerKw = update.frontPowerKw ?: current.frontPowerKw,
+                rearPowerKw = update.rearPowerKw ?: current.rearPowerKw,
+                frontTorqueNm = update.frontTorqueNm ?: current.frontTorqueNm,
+                rearTorqueNm = update.rearTorqueNm ?: current.rearTorqueNm,
+                batteryVoltage = update.batteryVoltage ?: current.batteryVoltage,
+                batteryCurrent = update.batteryCurrent ?: current.batteryCurrent,
+                socPercent = update.socPercent ?: current.socPercent,
+                odometerKm = update.odometerKm ?: current.odometerKm,
+                batteryTempC = update.batteryTempC ?: current.batteryTempC,
+                outsideTempC = update.outsideTempC ?: current.outsideTempC,
+                timestamp = System.currentTimeMillis()
+            )
+        }
+    }
+}

@@ -266,7 +266,7 @@ class TeslaCanParser {
      */
     private fun signExtend11(value: Int): Int {
         val masked = value and 0x7FF
-        return if ((masked and 0x400) != 0) masked or 0xFFFFF800 else masked
+        return if ((masked and 0x400) != 0) masked or -2048 else masked
     }
 
     /**

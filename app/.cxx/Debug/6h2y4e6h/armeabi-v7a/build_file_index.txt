@@ -1,0 +1,5 @@
+/root/project/tesla-engine-sound/app/.cxx/Debug/6h2y4e6h/armeabi-v7a/_deps/googletest-src/CMakeLists.txt
+/root/project/tesla-engine-sound/app/.cxx/Debug/6h2y4e6h/armeabi-v7a/_deps/googletest-src/googlemock/CMakeLists.txt
+/root/project/tesla-engine-sound/app/.cxx/Debug/6h2y4e6h/armeabi-v7a/_deps/googletest-src/googletest/CMakeLists.txt
+/root/project/tesla-engine-sound/app/src/main/cpp/CMakeLists.txt
+/root/project/tesla-engine-sound/engine-sim/core/third_party/simple-2d-constraint-solver/CMakeLists.txt
