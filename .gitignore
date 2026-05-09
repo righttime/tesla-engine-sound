@@ -6,3 +6,12 @@ local.properties
 *.iml
 .gradle/
 build/
+-e 
+# Build caches
+.cxx/
+app/.cxx/
+*.apk
+build/
+app/build/
+.gradle/
+local.properties
